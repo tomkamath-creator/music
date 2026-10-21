@@ -78,11 +78,15 @@ import com.vk.starscriptmusic.ui.components.GlassCard
 import com.vk.starscriptmusic.ui.components.TrackItemRow
 import com.vk.starscriptmusic.ui.components.bouncyClick
 
+import androidx.compose.material.icons.filled.Leaderboard
+import com.vk.starscriptmusic.core.theme.HolographicGold
+
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel,
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (Long) -> Unit,
+    onLeaderboardClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -133,7 +137,8 @@ fun LibraryScreen(
             // Header Bar with Signature Starscript Aura
             HeaderSection(
                 isScanning = uiState.isScanning,
-                onSyncClick = { viewModel.syncLibrary() }
+                onSyncClick = { viewModel.syncLibrary() },
+                onLeaderboardClick = onLeaderboardClick
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -201,7 +206,8 @@ fun LibraryScreen(
 @Composable
 private fun HeaderSection(
     isScanning: Boolean,
-    onSyncClick: () -> Unit
+    onSyncClick: () -> Unit,
+    onLeaderboardClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -229,21 +235,42 @@ private fun HeaderSection(
             )
         }
 
-        IconButton(
-            onClick = onSyncClick,
-            modifier = Modifier
-                .size(42.dp)
-                .bouncyClick(onClick = onSyncClick)
-                .clip(CircleShape)
-                .background(CardSurface.copy(alpha = 0.8f))
-                .border(1.dp, Color(0x33FFFFFF), CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Sync,
-                contentDescription = "Sync Library",
-                tint = if (isScanning) NeoCyan else TextPrimary,
-                modifier = Modifier.size(20.dp)
-            )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Hall of Fame Leaderboard Button
+            IconButton(
+                onClick = onLeaderboardClick,
+                modifier = Modifier
+                    .size(42.dp)
+                    .bouncyClick(onClick = onLeaderboardClick)
+                    .clip(CircleShape)
+                    .background(CardSurface.copy(alpha = 0.8f))
+                    .border(1.2.dp, HolographicGold.copy(alpha = 0.8f), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Leaderboard,
+                    contentDescription = "Hall of Fame Top 50",
+                    tint = HolographicGold,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            // Sync Library Button
+            IconButton(
+                onClick = onSyncClick,
+                modifier = Modifier
+                    .size(42.dp)
+                    .bouncyClick(onClick = onSyncClick)
+                    .clip(CircleShape)
+                    .background(CardSurface.copy(alpha = 0.8f))
+                    .border(1.dp, Color(0x33FFFFFF), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Sync,
+                    contentDescription = "Sync Library",
+                    tint = if (isScanning) NeoCyan else TextPrimary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }

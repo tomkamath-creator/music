@@ -58,6 +58,8 @@ import com.vk.starscriptmusic.core.theme.TextSecondary
 import com.vk.starscriptmusic.ui.artist.ArtistHubScreen
 import com.vk.starscriptmusic.ui.artist.ArtistHubViewModel
 import com.vk.starscriptmusic.ui.components.FloatingMiniPlayer
+import com.vk.starscriptmusic.ui.leaderboard.LeaderboardScreen
+import com.vk.starscriptmusic.ui.leaderboard.LeaderboardViewModel
 import com.vk.starscriptmusic.ui.library.LibraryScreen
 import com.vk.starscriptmusic.ui.library.LibraryViewModel
 import com.vk.starscriptmusic.ui.navigation.Screen
@@ -162,7 +164,32 @@ fun MainAppNavigation(
                                 },
                                 onPlaylistClick = { playlistId ->
                                     navController.navigate(Screen.PlaylistDetail.createRoute(playlistId))
+                                },
+                                onLeaderboardClick = {
+                                    navController.navigate(Screen.Leaderboard.route)
                                 }
+                            )
+                        }
+
+                        composable(
+                            route = Screen.Leaderboard.route,
+                            enterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Start,
+                                    animationSpec = tween(350)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.End,
+                                    animationSpec = tween(350)
+                                )
+                            }
+                        ) {
+                            val leaderboardViewModel: LeaderboardViewModel = hiltViewModel()
+                            LeaderboardScreen(
+                                viewModel = leaderboardViewModel,
+                                onBackClick = { navController.popBackStack() }
                             )
                         }
 

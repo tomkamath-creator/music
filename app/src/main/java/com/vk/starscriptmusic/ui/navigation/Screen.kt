@@ -8,6 +8,8 @@ import android.net.Uri
 sealed class Screen(val route: String) {
     data object Library : Screen("library")
 
+    data object Leaderboard : Screen("leaderboard")
+
     data object ArtistHub : Screen("artist_hub/{artistName}") {
         fun createRoute(artistName: String): String {
             return "artist_hub/${Uri.encode(artistName)}"
