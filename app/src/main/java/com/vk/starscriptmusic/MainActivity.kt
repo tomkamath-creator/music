@@ -50,6 +50,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.vk.starscriptmusic.ui.stats.ListeningStatsScreen
+import com.vk.starscriptmusic.ui.stats.ListeningStatsViewModel
 import com.vk.starscriptmusic.core.theme.NeoViolet
 import com.vk.starscriptmusic.core.theme.OledBlack
 import com.vk.starscriptmusic.core.theme.StarscriptMusicTheme
@@ -170,9 +173,34 @@ fun MainAppNavigation(
                                 onLeaderboardClick = {
                                     navController.navigate(Screen.Leaderboard.route)
                                 },
+                                onStatsClick = {
+                                    navController.navigate(Screen.ListeningStats.route)
+                                },
                                 onSettingsClick = {
                                     navController.navigate(Screen.Settings.route)
                                 }
+                            )
+                        }
+
+                        composable(
+                            route = Screen.ListeningStats.route,
+                            enterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Start,
+                                    animationSpec = tween(350)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.End,
+                                    animationSpec = tween(350)
+                                )
+                            }
+                        ) {
+                            val statsViewModel: ListeningStatsViewModel = hiltViewModel()
+                            ListeningStatsScreen(
+                                viewModel = statsViewModel,
+                                onBackClick = { navController.popBackStack() }
                             )
                         }
 
@@ -271,8 +299,12 @@ fun MainAppNavigation(
                         }
                     }
 
-                    // Floating Bottom Frosted Glass Mini-Player
+                    // Floating Bottom Frosted Glass Mini-Player (docks cleanly above bottom navigation bar)
                     if (nowPlayingUiState.playbackState.currentTrack != null) {
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentRoute = navBackStackEntry?.destination?.route
+                        val bottomPadding = if (currentRoute == Screen.Library.route) 76.dp else 12.dp
+
                         FloatingMiniPlayer(
                             playbackState = nowPlayingUiState.playbackState,
                             onExpand = { isNowPlayingExpanded = true },
@@ -281,7 +313,7 @@ fun MainAppNavigation(
                             onSkipPrevious = { nowPlayingViewModel.skipPrevious() },
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
-                                .padding(bottom = 8.dp)
+                                .padding(bottom = bottomPadding)
                         )
                     }
                 }

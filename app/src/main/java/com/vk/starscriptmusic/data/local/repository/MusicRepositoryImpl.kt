@@ -57,6 +57,14 @@ class MusicRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
+    override fun getTotalPlaysCount(): Flow<Int> {
+        return database.playCountDao().getTotalPlaysCount().flowOn(Dispatchers.IO)
+    }
+
+    override fun getAllPlayCounts(): Flow<List<com.vk.starscriptmusic.data.local.db.entity.PlayCountEntity>> {
+        return database.playCountDao().getAllPlayCountsFlow().flowOn(Dispatchers.IO)
+    }
+
     override fun getTracksByArtist(artist: String): Flow<List<Track>> {
         return database.trackDao().getTracksByArtist(artist).map { entities ->
             entities.map { it.toDomain() }

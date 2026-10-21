@@ -25,10 +25,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 enum class LibraryTab(val title: String) {
+    HOME("Home"),
     SONGS("Songs"),
     PLAYLISTS("Playlists"),
     ARTISTS("Artists"),
-    MOST_PLAYED("Most Played"),
     RADIO("Radio")
 }
 
@@ -60,7 +60,10 @@ data class LibraryUiState(
     val artists: List<Artist> = emptyList(),
     val playlists: List<Playlist> = emptyList(),
     val mostPlayedTracks: List<Track> = emptyList(),
-    val selectedTab: LibraryTab = LibraryTab.SONGS,
+    val rediscoverTracks: List<Track> = emptyList(),
+    val forYouNowTracks: List<Track> = emptyList(),
+    val recentTracks: List<Track> = emptyList(),
+    val selectedTab: LibraryTab = LibraryTab.HOME,
     val sortOption: SortOption = SortOption.TITLE_AZ,
     val searchQuery: String = "",
     val isScanning: Boolean = false,
@@ -81,7 +84,7 @@ class LibraryViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
-    private val _selectedTab = MutableStateFlow(LibraryTab.SONGS)
+    private val _selectedTab = MutableStateFlow(LibraryTab.HOME)
     private val _sortOption = MutableStateFlow(SortOption.TITLE_AZ)
     private val _isScanning = MutableStateFlow(false)
 
@@ -152,11 +155,19 @@ class LibraryViewModel @Inject constructor(
             }
         }
 
+        // Personalized smart sets
+        val rediscover = data.tracks.filter { it.playCount <= 1 }.shuffled().take(15)
+        val forYouNow = (data.mostPlayed.take(10) + data.tracks.filter { it.isFavorite }).distinctBy { it.id }.take(15)
+        val recents = data.tracks.sortedByDescending { it.dateAdded }.take(20)
+
         LibraryUiState(
             tracks = sortedTracks,
             artists = filteredArtists,
             playlists = filteredPlaylists,
             mostPlayedTracks = filteredMostPlayed,
+            rediscoverTracks = rediscover,
+            forYouNowTracks = forYouNow,
+            recentTracks = recents,
             selectedTab = filter.tab,
             sortOption = sort,
             searchQuery = query,
@@ -211,6 +222,36 @@ class LibraryViewModel @Inject constructor(
             val shuffled = tracks.shuffled()
             playbackRepository.setShuffleMode(true)
             playbackRepository.playTrack(shuffled.first(), shuffled)
+        }
+    }
+
+    fun playFavorites() {
+        val favs = uiState.value.tracks.filter { it.isFavorite }
+        if (favs.isNotEmpty()) {
+            playAll(favs)
+        } else if (uiState.value.tracks.isNotEmpty()) {
+            playAll(uiState.value.tracks)
+        }
+    }
+
+    fun playHistory() {
+        val recents = uiState.value.recentTracks
+        if (recents.isNotEmpty()) {
+            playAll(recents)
+        }
+    }
+
+    fun playRediscover() {
+        val redis = uiState.value.rediscoverTracks
+        if (redis.isNotEmpty()) {
+            playAll(redis)
+        }
+    }
+
+    fun playForYouNow() {
+        val forYou = uiState.value.forYouNowTracks
+        if (forYou.isNotEmpty()) {
+            playAll(forYou)
         }
     }
 

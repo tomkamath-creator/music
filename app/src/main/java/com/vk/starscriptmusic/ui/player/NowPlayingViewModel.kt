@@ -143,4 +143,16 @@ class NowPlayingViewModel @Inject constructor(
             toggleFavoriteUseCase(track.id, !track.isFavorite)
         }
     }
+
+    fun setVolume(volume: Float) {
+        playbackRepository.setVolume(volume)
+    }
+
+    fun startSleepTimer(minutes: Int) {
+        playbackRepository.startSleepTimer(minutes)
+    }
+
+    fun cancelSleepTimer() {
+        playbackRepository.cancelSleepTimer()
+    }
 }

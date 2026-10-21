@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -38,20 +40,29 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.VolumeDown
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -90,15 +101,17 @@ import com.vk.starscriptmusic.ui.components.FlowingHaloBox
 import com.vk.starscriptmusic.ui.components.SoundwaveProgressBar
 import com.vk.starscriptmusic.ui.components.bouncyClick
 import java.util.Locale
-import kotlin.math.abs
 
 /**
- * Full-screen Now Playing screen with Neo-Groove Dark Pop aesthetic:
+ * Full-screen Now Playing screen directly inspired by Oto Music Plus:
  * - Static smooth rounded-rectangle album art (24dp corner radius) with dynamic Palette back-glow
  * - Horizontal swipe-to-skip gestures across album art
  * - Signature flowing neon halo encircling Song Title and Artist Name
  * - 10-second skip buttons (-10s / +10s) flanking the main Play/Pause button
  * - Soundwave progression bar with floating timestamp pill
+ * - Volume slider row with low/high speaker icons
+ * - Audio format / studio quality badge (e.g. MP3 · 320 kb/s · 44.1 kHz)
+ * - Bottom utility bar (Lyrics/Intel, Favorite, Sleep Timer, Queue, More)
  * - Expandable frosted-glass Song Intel & Trivia Card with public online intelligence and offline fallback
  */
 @Composable
@@ -114,6 +127,8 @@ fun NowPlayingScreen(
     val context = LocalContext.current
 
     var isIntelExpanded by remember { mutableStateOf(false) }
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
+    var currentVolume by remember { mutableFloatStateOf(1.0f) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "album_art_breathing")
     val artGlowPulse by infiniteTransition.animateFloat(
@@ -503,7 +518,121 @@ fun NowPlayingScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Volume Slider Row (Image 2)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.VolumeDown,
+                    contentDescription = "Volume Down",
+                    tint = TextSecondary,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Slider(
+                    value = currentVolume,
+                    onValueChange = {
+                        currentVolume = it
+                        viewModel.setVolume(it)
+                    },
+                    valueRange = 0f..1f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = palette.secondaryAccent,
+                        activeTrackColor = palette.primaryAccent,
+                        inactiveTrackColor = CardSurfaceElevated
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.VolumeUp,
+                    contentDescription = "Volume Up",
+                    tint = TextSecondary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Audio Format / Studio Quality Tag (Image 2)
+            val audioFormat = remember(track) {
+                val format = track.mimeType?.substringAfterLast('/')?.uppercase() ?: "MP3"
+                val bitRateStr = if (track.bitrate != null && track.bitrate > 0) "${track.bitrate} kb/s" else "320 kb/s"
+                "$format · $bitRateStr · 44.1 kHz"
+            }
+            Text(
+                text = audioFormat,
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, letterSpacing = 0.5.sp),
+                color = TextTertiary
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Bottom Utility Icon Row (Image 2)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Lyrics / Song Intel
+                IconButton(onClick = { isIntelExpanded = !isIntelExpanded }) {
+                    Icon(
+                        imageVector = Icons.Default.Notes,
+                        contentDescription = "Song Intel / Lyrics",
+                        tint = if (isIntelExpanded) palette.secondaryAccent else TextSecondary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                // Favorite
+                IconButton(onClick = { viewModel.toggleFavorite() }) {
+                    Icon(
+                        imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (uiState.isFavorite) NeoMagenta else TextSecondary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                // Sleep Timer (Crescent Moon)
+                IconButton(onClick = { showSleepTimerDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Bedtime,
+                        contentDescription = "Sleep Timer",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                // Queue
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = Icons.Default.QueueMusic,
+                        contentDescription = "Queue",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                // More Options
+                IconButton(onClick = { isIntelExpanded = !isIntelExpanded }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreHoriz,
+                        contentDescription = "More",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Expandable Frosted-Glass "Song Intel & Trivia" Card
             Box(
@@ -638,6 +767,61 @@ fun NowPlayingScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
         }
+    }
+
+    // Sleep Timer Dialog
+    if (showSleepTimerDialog) {
+        val options = listOf(15, 30, 45, 60)
+        AlertDialog(
+            onDismissRequest = { showSleepTimerDialog = false },
+            containerColor = CardSurfaceElevated,
+            title = {
+                Text(
+                    text = "Sleep Timer",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = TextPrimary
+                )
+            },
+            text = {
+                Column {
+                    options.forEach { minutes ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.startSleepTimer(minutes)
+                                    showSleepTimerDialog = false
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Bedtime, contentDescription = null, tint = palette.secondaryAccent, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(text = "$minutes minutes", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.cancelSleepTimer()
+                                showSleepTimerDialog = false
+                            }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = null, tint = NeoMagenta, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(text = "Turn off timer", style = MaterialTheme.typography.bodyMedium, color = NeoMagenta)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSleepTimerDialog = false }) {
+                    Text("Close", color = TextSecondary)
+                }
+            }
+        )
     }
 }
 

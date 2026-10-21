@@ -16,6 +16,10 @@ interface MusicRepository {
 
     fun getTop50Tracks(): Flow<List<Track>>
 
+    fun getTotalPlaysCount(): Flow<Int>
+
+    fun getAllPlayCounts(): Flow<List<com.vk.starscriptmusic.data.local.db.entity.PlayCountEntity>>
+
     fun getTracksByArtist(artist: String): Flow<List<Track>>
 
     fun getArtists(): Flow<List<Artist>>

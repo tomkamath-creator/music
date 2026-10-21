@@ -51,6 +51,12 @@ interface PlayCountDao {
     @Query("SELECT * FROM play_counts")
     suspend fun getAllPlayCounts(): List<PlayCountEntity>
 
+    @Query("SELECT COALESCE(SUM(playCount), 0) FROM play_counts")
+    fun getTotalPlaysCount(): Flow<Int>
+
+    @Query("SELECT * FROM play_counts ORDER BY lastPlayedTimestamp DESC")
+    fun getAllPlayCountsFlow(): Flow<List<PlayCountEntity>>
+
     @Query("DELETE FROM play_counts WHERE trackId = :trackId")
     suspend fun deletePlayCountByTrackId(trackId: Long)
 
