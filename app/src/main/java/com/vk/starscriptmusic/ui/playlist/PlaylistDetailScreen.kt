@@ -63,6 +63,7 @@ import com.vk.starscriptmusic.core.theme.NeoCyan
 import com.vk.starscriptmusic.core.theme.NeoMagenta
 import com.vk.starscriptmusic.core.theme.NeoViolet
 import com.vk.starscriptmusic.core.theme.OledBlack
+import com.vk.starscriptmusic.core.theme.TextMuted
 import com.vk.starscriptmusic.core.theme.TextPrimary
 import com.vk.starscriptmusic.core.theme.TextSecondary
 import com.vk.starscriptmusic.core.theme.TextTertiary
