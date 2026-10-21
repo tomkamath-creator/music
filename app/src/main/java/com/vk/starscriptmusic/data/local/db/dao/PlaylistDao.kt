@@ -45,6 +45,22 @@ interface PlaylistDao {
     @Update
     suspend fun updatePlaylist(playlist: PlaylistEntity)
 
+    @Query("UPDATE playlists SET name = :newName WHERE id = :playlistId")
+    suspend fun updatePlaylistName(playlistId: Long, newName: String)
+
+    @Transaction
+    suspend fun reorderPlaylistTracks(playlistId: Long, orderedTrackIds: List<Long>) {
+        clearTracksFromPlaylist(playlistId)
+        val refs = orderedTrackIds.mapIndexed { index, trackId ->
+            PlaylistTrackCrossRef(
+                playlistId = playlistId,
+                trackId = trackId,
+                orderIndex = index
+            )
+        }
+        insertCrossRefs(refs)
+    }
+
     @Query("DELETE FROM playlists WHERE id = :playlistId")
     suspend fun deletePlaylist(playlistId: Long)
 

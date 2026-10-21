@@ -21,6 +21,8 @@ interface PlaybackRepository {
 
     fun seekTo(positionMs: Long)
 
+    fun seekRelative(offsetMs: Long)
+
     fun skipNext()
 
     fun skipPrevious()

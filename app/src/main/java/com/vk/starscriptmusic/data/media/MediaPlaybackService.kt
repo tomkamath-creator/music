@@ -180,11 +180,27 @@ class MediaPlaybackService : MediaSessionService() {
                 hasCountedCurrentPlay = false
             }
 
-            if (newTrackId != null) {
+            if (mediaItem != null) {
                 serviceScope.launch(Dispatchers.IO) {
-                    val trackEntity = database.trackDao().getTrackById(newTrackId)
-                    val playCount = database.playCountDao().getPlayCountByTrackId(newTrackId)?.playCount ?: 0
-                    val track = trackEntity?.toDomain(playCount = playCount)
+                    val trackEntity = if (newTrackId != null) database.trackDao().getTrackById(newTrackId) else null
+                    val playCount = if (newTrackId != null) {
+                        database.playCountDao().getPlayCountByTrackId(newTrackId)?.playCount ?: 0
+                    } else 0
+
+                    val track = trackEntity?.toDomain(playCount = playCount) ?: run {
+                        val meta = mediaItem.mediaMetadata
+                        com.vk.starscriptmusic.domain.model.Track(
+                            id = newTrackId ?: mediaItem.mediaId.hashCode().toLong(),
+                            title = meta.title?.toString() ?: "Live Stream",
+                            artist = meta.artist?.toString() ?: "Radio",
+                            album = meta.albumTitle?.toString() ?: "Internet Radio",
+                            durationMs = 0L,
+                            contentUri = mediaItem.requestMetadata.mediaUri?.toString() ?: mediaItem.mediaId,
+                            albumArtUri = meta.artworkUri?.toString(),
+                            dateAdded = System.currentTimeMillis(),
+                            size = 0L
+                        )
+                    }
 
                     launch(Dispatchers.Main) {
                         val queue = playbackStateHolder.state.value.queue

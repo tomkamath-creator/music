@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
 import com.vk.starscriptmusic.core.util.DynamicPaletteColors
 import com.vk.starscriptmusic.core.util.PaletteExtractor
+import com.vk.starscriptmusic.data.network.SongIntel
+import com.vk.starscriptmusic.data.network.SongIntelService
 import com.vk.starscriptmusic.domain.model.PlaybackState
 import com.vk.starscriptmusic.domain.repository.PlaybackRepository
 import com.vk.starscriptmusic.domain.usecase.ToggleFavoriteUseCase
@@ -24,26 +26,35 @@ import javax.inject.Inject
 data class NowPlayingUiState(
     val playbackState: PlaybackState = PlaybackState(),
     val palette: DynamicPaletteColors = DynamicPaletteColors(),
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val songIntel: SongIntel? = null,
+    val isIntelLoading: Boolean = false
 )
 
 @HiltViewModel
 class NowPlayingViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val playbackRepository: PlaybackRepository,
-    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val songIntelService: SongIntelService
 ) : ViewModel() {
 
     private val paletteColors = MutableStateFlow(DynamicPaletteColors())
+    private val songIntelFlow = MutableStateFlow<SongIntel?>(null)
+    private val isIntelLoadingFlow = MutableStateFlow(false)
 
     val uiState: StateFlow<NowPlayingUiState> = combine(
         playbackRepository.playbackState,
-        paletteColors
-    ) { state, palette ->
+        paletteColors,
+        songIntelFlow,
+        isIntelLoadingFlow
+    ) { state, palette, intel, isLoading ->
         NowPlayingUiState(
             playbackState = state,
             palette = palette,
-            isFavorite = state.currentTrack?.isFavorite ?: false
+            isFavorite = state.currentTrack?.isFavorite ?: false,
+            songIntel = intel,
+            isIntelLoading = isLoading
         )
     }.stateIn(
         scope = viewModelScope,
@@ -52,14 +63,41 @@ class NowPlayingViewModel @Inject constructor(
     )
 
     init {
-        // Automatically extract dynamic palette whenever the active track changes
+        // Automatically extract dynamic palette & fetch Song Intel whenever the active track changes
         viewModelScope.launch {
             playbackRepository.playbackState
-                .map { it.currentTrack?.albumArtUri }
-                .distinctUntilChanged()
-                .collect { artUri ->
-                    val colors = PaletteExtractor.extractColors(context, artUri)
-                    paletteColors.value = colors
+                .map { it.currentTrack }
+                .distinctUntilChanged { old, new -> old?.id == new?.id && old?.contentUri == new?.contentUri }
+                .collect { track ->
+                    if (track != null) {
+                        // Palette extraction
+                        val initialArtUri = track.albumArtUri
+                        val initialColors = PaletteExtractor.extractColors(context, initialArtUri)
+                        paletteColors.value = initialColors
+
+                        // Fetch Song Intel & high-res replacement art
+                        isIntelLoadingFlow.value = true
+                        try {
+                            val intel = songIntelService.getSongIntel(
+                                title = track.title,
+                                artist = track.artist,
+                                album = track.album
+                            )
+                            songIntelFlow.value = intel
+
+                            // If track was missing album art and iTunes returned 1400x1400 high-res art, sample colors from it
+                            if (initialArtUri == null && intel.highResArtworkUrl != null) {
+                                val highResColors = PaletteExtractor.extractColors(context, intel.highResArtworkUrl)
+                                paletteColors.value = highResColors
+                            }
+                        } catch (_: Exception) {
+                            // Fallback state
+                        } finally {
+                            isIntelLoadingFlow.value = false
+                        }
+                    } else {
+                        songIntelFlow.value = null
+                    }
                 }
         }
     }
@@ -78,6 +116,10 @@ class NowPlayingViewModel @Inject constructor(
 
     fun seekTo(positionMs: Long) {
         playbackRepository.seekTo(positionMs)
+    }
+
+    fun seekRelative(offsetMs: Long) {
+        playbackRepository.seekRelative(offsetMs)
     }
 
     fun toggleRepeat() {

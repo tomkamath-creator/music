@@ -17,6 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -115,18 +116,42 @@ class PlaybackRepositoryImpl @Inject constructor(
     override fun playPause() {
         val controller = mediaController ?: return
         if (controller.isPlaying) {
-            controller.pause()
+            pause()
         } else {
-            controller.play()
+            resume()
         }
     }
 
     override fun pause() {
-        mediaController?.pause()
+        val controller = mediaController ?: return
+        repositoryScope.launch {
+            // Smooth 200ms volume fade-out
+            val steps = 5
+            val stepDelayMs = 40L
+            val initialVolume = controller.volume.coerceAtLeast(0.1f)
+            for (step in (steps - 1) downTo 0) {
+                controller.volume = (initialVolume * (step.toFloat() / steps)).coerceIn(0f, 1f)
+                delay(stepDelayMs)
+            }
+            controller.pause()
+            controller.volume = initialVolume
+        }
     }
 
     override fun resume() {
-        mediaController?.play()
+        val controller = mediaController ?: return
+        repositoryScope.launch {
+            // Smooth 200ms volume fade-in
+            controller.volume = 0f
+            controller.play()
+            val steps = 5
+            val stepDelayMs = 40L
+            val targetVolume = 1.0f
+            for (step in 1..steps) {
+                delay(stepDelayMs)
+                controller.volume = (targetVolume * (step.toFloat() / steps)).coerceIn(0f, 1f)
+            }
+        }
     }
 
     override fun seekTo(positionMs: Long) {
@@ -137,6 +162,18 @@ class PlaybackRepositoryImpl @Inject constructor(
             controller.duration.coerceAtLeast(0L),
             controller.bufferedPosition
         )
+    }
+
+    override fun seekRelative(offsetMs: Long) {
+        val controller = mediaController ?: return
+        val current = controller.currentPosition
+        val duration = controller.duration.coerceAtLeast(0L)
+        val target = if (duration > 0) {
+            (current + offsetMs).coerceIn(0L, duration)
+        } else {
+            (current + offsetMs).coerceAtLeast(0L)
+        }
+        seekTo(target)
     }
 
     override fun skipNext() {

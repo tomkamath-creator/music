@@ -4,22 +4,70 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Outer Glow Circle -->
+
+    <!-- Ambient Liquid Gold Backglow -->
     <path
-        android:fillColor="#33A855F7"
-        android:pathData="M54,54m-42,0a42,42 0,1 1,84 0a42,42 0,1 1,-84 0"/>
-    <!-- Middle Ring -->
+        android:fillColor="#22FFD700"
+        android:pathData="M54,54m-28,0a28,28 0,1 1,56 0a28,28 0,1 1,-56 0"/>
+
+    <!-- Ambient Neo-Violet Backglow -->
+    <path
+        android:fillColor="#28A855F7"
+        android:pathData="M54,54m-22,0a22,22 0,1 1,44 0a22,22 0,1 1,-44 0"/>
+
+    <!-- Outer Geometric Ring: Classy Micro-faceted Rounded Diamond -->
+    <path
+        android:strokeColor="#FFD700"
+        android:strokeWidth="1.5"
+        android:strokeAlpha="0.85"
+        android:fillColor="#00000000"
+        android:pathData="M54,22 L86,54 L54,86 L22,54 Z"/>
+
     <path
         android:strokeColor="#A855F7"
-        android:strokeWidth="2.5"
+        android:strokeWidth="1.2"
+        android:strokeAlpha="0.70"
         android:fillColor="#00000000"
-        android:pathData="M54,54m-32,0a32,32 0,1 1,64 0a32,32 0,1 1,-64 0"/>
-    <!-- Central Star + Music Note Motif -->
+        android:pathData="M54,28 L80,54 L54,80 L28,54 Z"/>
+
+    <!-- Symmetrical Wave Plumes (Left and Right Soundwaves) -->
+    <!-- Left Waves -->
+    <path
+        android:strokeColor="#06B6D4"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M34,46 L34,62 M39,40 L39,68 M44,35 L44,73"/>
+
+    <!-- Right Waves -->
+    <path
+        android:strokeColor="#06B6D4"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M74,46 L74,62 M69,40 L69,68 M64,35 L64,73"/>
+
+    <!-- Central Audiophile Stellar Glyph (Liquid Gold Star) -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M54,32 C54,44 44,54 32,54 C44,54 54,64 54,76 C54,64 64,54 76,54 C64,54 54,44 54,32 Z"/>
+
+    <!-- Inner Core Violet Pearl Diamond -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,48 L60,54 L54,60 L48,54 Z"/>
+
+    <!-- Sparkle Accents -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M54,51 L55.5,54 L54,57 L52.5,54 Z"/>
+
+    <!-- Subtle Satellite Sparkles -->
     <path
         android:fillColor="#EC4899"
-        android:pathData="M54,30 L57,45 L72,48 L58,56 L62,70 L54,60 L46,70 L50,56 L36,48 L51,45 Z"/>
-    <!-- Inner Accent -->
+        android:pathData="M71,36 L72,37.5 L73.5,37.5 L72.2,38.5 L72.7,40 L71,39 L69.3,40 L69.8,38.5 L68.5,37.5 L70,37.5 Z"/>
     <path
         android:fillColor="#06B6D4"
-        android:pathData="M54,42 L55.5,50 L63,51.5 L56,55.5 L58,62 L54,57 L50,62 L52,55.5 L45,51.5 L52.5,50 Z"/>
+        android:pathData="M37,70 L38,71.5 L39.5,71.5 L38.2,72.5 L38.7,74 L37,73 L35.3,74 L35.8,72.5 L34.5,71.5 L36,71.5 Z"/>
+
 </vector>

@@ -32,6 +32,10 @@ interface MusicRepository {
 
     suspend fun createPlaylist(name: String, description: String?): Long
 
+    suspend fun renamePlaylist(playlistId: Long, newName: String)
+
+    suspend fun reorderPlaylist(playlistId: Long, orderedTrackIds: List<Long>)
+
     suspend fun addTracksToPlaylist(playlistId: Long, trackIds: List<Long>)
 
     suspend fun removeTrackFromPlaylist(playlistId: Long, trackId: Long)
