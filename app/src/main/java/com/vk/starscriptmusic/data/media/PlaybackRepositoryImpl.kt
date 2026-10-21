@@ -29,7 +29,8 @@ import javax.inject.Singleton
 @Singleton
 class PlaybackRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val stateHolder: PlaybackStateHolder
+    private val stateHolder: PlaybackStateHolder,
+    private val sleepTimerManager: SleepTimerManager
 ) : PlaybackRepository {
 
     private val repositoryScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -37,6 +38,8 @@ class PlaybackRepositoryImpl @Inject constructor(
     private var mediaController: MediaController? = null
 
     override val playbackState: StateFlow<PlaybackState> = stateHolder.state
+    override val sleepTimerRemainingSeconds: StateFlow<Int> = sleepTimerManager.remainingSeconds
+    override val isSleepTimerActive: StateFlow<Boolean> = sleepTimerManager.isTimerActive
 
     init {
         connectToService()
@@ -171,7 +174,25 @@ class PlaybackRepositoryImpl @Inject constructor(
         stateHolder.updatePlaybackSpeed(speed)
     }
 
+    override fun startSleepTimer(minutes: Int) {
+        sleepTimerManager.startTimer(
+            durationMinutes = minutes,
+            onVolumeFade = { fadeFactor -> setVolume(fadeFactor) },
+            onTimerComplete = { pause() }
+        )
+    }
+
+    override fun cancelSleepTimer() {
+        sleepTimerManager.cancelTimer()
+        setVolume(1.0f)
+    }
+
+    override fun setVolume(volume: Float) {
+        mediaController?.volume = volume.coerceIn(0.0f, 1.0f)
+    }
+
     override fun release() {
+        cancelSleepTimer()
         controllerFuture?.let { MediaController.releaseFuture(it) }
         mediaController = null
         controllerFuture = null

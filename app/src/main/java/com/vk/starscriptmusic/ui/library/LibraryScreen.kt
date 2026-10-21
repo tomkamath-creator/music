@@ -79,6 +79,7 @@ import com.vk.starscriptmusic.ui.components.TrackItemRow
 import com.vk.starscriptmusic.ui.components.bouncyClick
 
 import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.Settings
 import com.vk.starscriptmusic.core.theme.HolographicGold
 
 @Composable
@@ -87,6 +88,7 @@ fun LibraryScreen(
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (Long) -> Unit,
     onLeaderboardClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -138,7 +140,8 @@ fun LibraryScreen(
             HeaderSection(
                 isScanning = uiState.isScanning,
                 onSyncClick = { viewModel.syncLibrary() },
-                onLeaderboardClick = onLeaderboardClick
+                onLeaderboardClick = onLeaderboardClick,
+                onSettingsClick = onSettingsClick
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -207,7 +210,8 @@ fun LibraryScreen(
 private fun HeaderSection(
     isScanning: Boolean,
     onSyncClick: () -> Unit,
-    onLeaderboardClick: () -> Unit
+    onLeaderboardClick: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -268,6 +272,24 @@ private fun HeaderSection(
                     imageVector = Icons.Default.Sync,
                     contentDescription = "Sync Library",
                     tint = if (isScanning) NeoCyan else TextPrimary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            // Settings Button
+            IconButton(
+                onClick = onSettingsClick,
+                modifier = Modifier
+                    .size(42.dp)
+                    .bouncyClick(onClick = onSettingsClick)
+                    .clip(CircleShape)
+                    .background(CardSurface.copy(alpha = 0.8f))
+                    .border(1.dp, Color(0x33FFFFFF), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    tint = TextPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }

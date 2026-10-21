@@ -33,5 +33,15 @@ interface PlaybackRepository {
 
     fun setPlaybackSpeed(speed: Float)
 
+    fun startSleepTimer(minutes: Int)
+
+    fun cancelSleepTimer()
+
+    val sleepTimerRemainingSeconds: StateFlow<Int>
+
+    val isSleepTimerActive: StateFlow<Boolean>
+
+    fun setVolume(volume: Float)
+
     fun release()
 }

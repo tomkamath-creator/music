@@ -67,6 +67,8 @@ import com.vk.starscriptmusic.ui.player.NowPlayingScreen
 import com.vk.starscriptmusic.ui.player.NowPlayingViewModel
 import com.vk.starscriptmusic.ui.playlist.PlaylistDetailScreen
 import com.vk.starscriptmusic.ui.playlist.PlaylistDetailViewModel
+import com.vk.starscriptmusic.ui.settings.SettingsScreen
+import com.vk.starscriptmusic.ui.settings.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -167,7 +169,32 @@ fun MainAppNavigation(
                                 },
                                 onLeaderboardClick = {
                                     navController.navigate(Screen.Leaderboard.route)
+                                },
+                                onSettingsClick = {
+                                    navController.navigate(Screen.Settings.route)
                                 }
+                            )
+                        }
+
+                        composable(
+                            route = Screen.Settings.route,
+                            enterTransition = {
+                                slideIntoContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.Start,
+                                    animationSpec = tween(350)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    AnimatedContentTransitionScope.SlideDirection.End,
+                                    animationSpec = tween(350)
+                                )
+                            }
+                        ) {
+                            val settingsViewModel: SettingsViewModel = hiltViewModel()
+                            SettingsScreen(
+                                viewModel = settingsViewModel,
+                                onBackClick = { navController.popBackStack() }
                             )
                         }
 
