@@ -59,15 +59,27 @@ class LibraryViewModel @Inject constructor(
     private val _selectedTab = MutableStateFlow(LibraryTab.SONGS)
     private val _isScanning = MutableStateFlow(false)
 
-    val uiState: StateFlow<LibraryUiState> = combine(
+    private val libraryDataFlow = combine(
         getAllTracksUseCase(),
         getArtistsUseCase(),
-        getPlaylistsUseCase(),
+        getPlaylistsUseCase()
+    ) { tracks, artists, playlists ->
+        Triple(tracks, artists, playlists)
+    }
+
+    private val filterStateFlow = combine(
         _searchQuery,
         _selectedTab,
-        _isScanning,
+        _isScanning
+    ) { query, tab, isScanning ->
+        Triple(query, tab, isScanning)
+    }
+
+    val uiState: StateFlow<LibraryUiState> = combine(
+        libraryDataFlow,
+        filterStateFlow,
         playbackRepository.playbackState
-    ) { tracks, artists, playlists, query, tab, isScanning, playbackState ->
+    ) { (tracks, artists, playlists), (query, tab, isScanning), playbackState ->
         val filteredTracks = if (query.isBlank()) {
             tracks
         } else {
