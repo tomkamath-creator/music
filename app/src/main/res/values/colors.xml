@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black_oled">#000000</color>
+    <color name="space_charcoal">#090A10</color>
+    <color name="deep_surface">#12131C</color>
+    <color name="surface_card">#1A1C29</color>
+    
+    <!-- Neo-Groove Pop Accents -->
+    <color name="neo_violet">#A855F7</color>
+    <color name="neo_magenta">#EC4899</color>
+    <color name="neo_cyan">#06B6D4</color>
+    <color name="neo_lime">#10B981</color>
+    
+    <!-- Top 50 Leaderboard Rings -->
+    <color name="ring_gold">#FFD700</color>
+    <color name="ring_silver">#E2E8F0</color>
+    <color name="ring_bronze">#CD7F32</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#F8FAFC</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_tertiary">#475569</color>
+</resources>

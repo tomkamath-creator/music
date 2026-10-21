@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Starscript Music</string>
+    <string name="app_subtitle">by vk</string>
+    <string name="notification_channel_name">Starscript Playback</string>
+    <string name="notification_channel_desc">Active audio playback controls and status</string>
+    <string name="permission_audio_rationale">Starscript Music requires access to your audio library to discover and play your local music offline.</string>
+    <string name="permission_notification_rationale">Starscript Music needs notification permission to display lock-screen playback controls.</string>
+</resources>
